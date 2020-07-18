@@ -20,7 +20,7 @@ class OrderItemQueriesTest extends \Codeception\TestCase\WPTestCase {
 		$this->order           = $this->order_helper->create();
     }
 
-    public function tearDown() {
+    public function tearDown(): void {
         // your tear down methods here
 
         // then
