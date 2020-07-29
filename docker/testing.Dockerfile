@@ -11,44 +11,38 @@ LABEL author_uri=https://github.com/kidunot89
 SHELL [ "/bin/bash", "-c" ]
 
 # Redeclare ARGs and set as environmental variables for reuse.
-ARG USE_XDEBUG
-ENV USING_XDEBUG=${USE_XDEBUG}
+ARG USE_PCOV
+ENV USING_PCOV=${USE_PCOV}
 
 # Install php extensions
 RUN docker-php-ext-install pdo_mysql
-RUN docker-php-ext-install intl
-RUN pecl install -f libsodium
+
+RUN apt-get -y update \
+	&& apt-get install -y libicu-dev \
+	&& docker-php-ext-configure intl \
+	&& docker-php-ext-install intl
 
 # Install PCOV and XDebug
-RUN if [ "$PHP_VERSION" != "5.6" ] && [ "$PHP_VERSION" != "7.0" ] && [[ -z "$USING_XDEBUG" ]]; then \
+RUN if [[ -n "$USING_PCOV" ]]; then \
         apt-get install zip unzip -y && \
         pecl install pcov && \
         docker-php-ext-enable pcov && \
         rm -f /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini && \
-        echo "pcov.enabled=1" >> /usr/local/etc/php/php.ini ;\
-    elif  [ "$PHP_VERSION" == "5.6" ]; then \
-        yes | pecl install xdebug-2.5.5 \
-        && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" > /usr/local/etc/php/conf.d/xdebug.ini \
-        && echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini \
-        && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini; \
-    elif  [ "$PHP_VERSION" == "7.0" ] || [ -n "$USING_XDEBUG" ]; then \
-        yes | pecl install xdebug-2.6.1 \
-        && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" > /usr/local/etc/php/conf.d/xdebug.ini \
-        && echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini \
-        && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini; \
+        echo "pcov.enabled=1" >> /usr/local/etc/php/php.ini;\
     else \
         yes | pecl install xdebug \
         && echo "zend_extension=$(find /usr/local/lib/php/extensions/ -name xdebug.so)" > /usr/local/etc/php/conf.d/xdebug.ini \
         && echo "xdebug.remote_enable=on" >> /usr/local/etc/php/conf.d/xdebug.ini \
-        && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini; \
+        && echo "xdebug.remote_autostart=off" >> /usr/local/etc/php/conf.d/xdebug.ini;\
     fi
 
 # Install composer
 ENV COMPOSER_ALLOW_SUPERUSER=1
 
-RUN curl -sS https://getcomposer.org/installer | php -- \
-    --filename=composer \
-    --install-dir=/usr/local/bin
+RUN curl -sS https://getcomposer.org/installer | php -- --filename=composer --install-dir=/usr/local/bin
+
+# Install composer plugin for parallel installs
+RUN composer global require hirak/prestissimo
 
 # Add composer global binaries to PATH
 ENV PATH "$PATH:~/.composer/vendor/bin"

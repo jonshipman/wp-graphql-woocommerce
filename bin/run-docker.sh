@@ -42,7 +42,7 @@ case "$subcommand" in
 
                 docker build -f docker/testing.Dockerfile \
                     -t woographql-testing:latest \
-                    --build-arg USE_XDEBUG=${USE_XDEBUG-} \
+                    --build-arg USE_PCOV=${USE_PCOV-} \
                     .
                     ;;
                 \? ) print_usage_instructions;;
