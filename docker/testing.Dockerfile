@@ -16,6 +16,8 @@ ENV USING_XDEBUG=${USE_XDEBUG}
 
 # Install php extensions
 RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install intl
+RUN pecl install -f libsodium
 
 # Install PCOV and XDebug
 RUN if [ "$PHP_VERSION" != "5.6" ] && [ "$PHP_VERSION" != "7.0" ] && [[ -z "$USING_XDEBUG" ]]; then \
