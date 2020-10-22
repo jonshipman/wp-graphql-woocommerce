@@ -10,7 +10,7 @@ class OrderItemQueriesTest extends \Codeception\TestCase\WPTestCase {
     private $item_helper;
 	private $order_helper;
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
 
         $this->shop_manager    = $this->factory->user->create( array( 'role' => 'shop_manager' ) );
